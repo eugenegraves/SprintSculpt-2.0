@@ -23,12 +23,45 @@ const Dashboard = () => {
     return 'JD' // Default
   }
   
-  // Mock data for recent activities
+  // Mock data for recent activities with the new format supporting multiple sets
   const recentActivities = [
-    { id: 1, type: '100m Sprint', date: 'Today', time: '11.24s', improvement: '+0.12s' },
-    { id: 2, type: '200m Sprint', date: 'Yesterday', time: '23.45s', improvement: '+0.08s' },
-    { id: 3, type: 'Strength Training', date: '2 days ago', time: '45m', improvement: null },
+    { 
+      id: 1, 
+      type: 'Sprint', 
+      date: 'Today', 
+      sets: [
+        { reps: 4, distance: '30m', times: ['4.25s', '4.18s', '4.22s', '4.15s'] },
+        { reps: 2, distance: '60m', times: ['8.12s', '8.05s'] }
+      ],
+      improvement: '+0.12s' 
+    },
+    { 
+      id: 2, 
+      type: 'Sprint', 
+      date: 'Yesterday', 
+      sets: [
+        { reps: 3, distance: '10m', times: ['1.85s', '1.82s', '1.80s'] },
+        { reps: 2, distance: '20m', times: ['3.10s', '3.05s'] },
+        { reps: 1, distance: '40m', times: ['5.75s'] }
+      ],
+      improvement: '+0.08s' 
+    },
+    { 
+      id: 3, 
+      type: 'Strength', 
+      date: '2 days ago', 
+      description: 'Full body workout',
+      duration: '45m',
+      improvement: null 
+    },
   ]
+  
+  // Helper function to format sets display
+  const formatSets = (sets) => {
+    if (!sets || sets.length === 0) return ''
+    
+    return sets.map(set => `${set.reps} × ${set.distance}`).join(', ')
+  }
   
   return (
     <>
@@ -133,10 +166,9 @@ const Dashboard = () => {
             {recentActivities.map(activity => (
               <div 
                 key={activity.id} 
-                className="card" 
+                className="card activity-card" 
                 style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                  display: 'flex',
                   padding: '1rem' 
                 }}
               >
@@ -144,7 +176,8 @@ const Dashboard = () => {
                   backgroundColor: 'rgba(255, 107, 53, 0.1)', 
                   borderRadius: '50%', 
                   padding: '0.75rem', 
-                  marginRight: '1rem' 
+                  marginRight: '1rem',
+                  height: 'fit-content'
                 }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
@@ -159,12 +192,33 @@ const Dashboard = () => {
                     <p style={{ fontWeight: '500' }}>{activity.type}</p>
                     <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>{activity.date}</p>
                   </div>
+                  
+                  {activity.type !== 'Strength' ? (
+                    <div className="activity-details">
+                      {activity.sets && activity.sets.map((set, index) => (
+                        <div key={index} className="activity-set">
+                          <span className="set-label">{set.reps} × {set.distance}</span>
+                          {set.times && set.times.length > 0 && (
+                            <span className="set-time">
+                              Best: {set.times.sort()[0]}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="activity-details">
+                      <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
+                        {activity.description} • {activity.duration}
+                      </p>
+                    </div>
+                  )}
+                  
                   <div style={{ 
                     display: 'flex', 
-                    justifyContent: 'space-between', 
+                    justifyContent: 'flex-end', 
                     marginTop: '0.25rem' 
                   }}>
-                    <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>{activity.time}</p>
                     {activity.improvement && (
                       <p style={{ fontSize: '0.875rem', color: '#10B981' }}>{activity.improvement}</p>
                     )}
@@ -218,7 +272,7 @@ const Dashboard = () => {
               fontSize: '0.875rem' 
             }}>
               <p>Today's workout:</p>
-              <p style={{ fontWeight: '500' }}>Track Session</p>
+              <p style={{ fontWeight: '500' }}>4 × 30m, 2 × 60m</p>
             </div>
           </div>
         </div>

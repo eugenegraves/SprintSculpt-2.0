@@ -4,13 +4,27 @@ import { useNavigate } from 'react-router-dom'
 const SessionForm = () => {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
-    type: '100m',
-    time: '',
+    type: 'Sprint',
     date: new Date().toISOString().split('T')[0],
     weather: 'sunny',
     surface: 'track',
     notes: '',
   })
+  
+  const commonDistances = ['10m', '20m', '30m', '40m', '60m', '100m', '150m', '200m', '300m', '400m']
+  
+  const [sets, setSets] = useState([
+    { 
+      id: 1, 
+      reps: 1, 
+      distance: '30m',
+      customDistance: '',
+      times: [''],
+      noTimeTracking: false
+    }
+  ])
+  
+  const [newCustomDistance, setNewCustomDistance] = useState('')
   
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -22,17 +36,77 @@ const SessionForm = () => {
   
   const handleSubmit = (e) => {
     e.preventDefault()
-    console.log('Form submitted:', formData)
-    // Here you would save the data to your backend
-    // For now, let's just navigate back to dashboard
+    const sessionData = {
+      ...formData,
+      sets: sets.map(set => ({
+        ...set,
+        distance: set.customDistance || set.distance,
+        times: set.noTimeTracking ? [] : set.times.filter(time => time.trim() !== '')
+      }))
+    }
+    
+    console.log('Form submitted:', sessionData)
     navigate('/dashboard')
   }
   
-  const handleSetDistance = (distance) => {
-    setFormData({
-      ...formData,
-      type: distance
-    })
+  const addSet = () => {
+    const newSet = {
+      id: sets.length + 1,
+      reps: 1,
+      distance: '30m',
+      customDistance: '',
+      times: [''],
+      noTimeTracking: false
+    }
+    setSets([...sets, newSet])
+  }
+  
+  const removeSet = (setId) => {
+    setSets(sets.filter(set => set.id !== setId))
+  }
+  
+  const handleSetChange = (setId, field, value) => {
+    setSets(sets.map(set => {
+      if (set.id === setId) {
+        if (field === 'reps') {
+          const numReps = parseInt(value, 10) || 0
+          const newTimes = [...set.times]
+          
+          if (numReps > set.times.length) {
+            for (let i = set.times.length; i < numReps; i++) {
+              newTimes.push('')
+            }
+          } else if (numReps < set.times.length) {
+            newTimes.splice(numReps)
+          }
+          
+          return { ...set, [field]: value, times: newTimes }
+        }
+        
+        return { ...set, [field]: value }
+      }
+      return set
+    }))
+  }
+  
+  const handleTimeChange = (setId, repIndex, value) => {
+    setSets(sets.map(set => {
+      if (set.id === setId) {
+        const newTimes = [...set.times]
+        newTimes[repIndex] = value
+        return { ...set, times: newTimes }
+      }
+      return set
+    }))
+  }
+  
+  const toggleTimeTracking = (setId) => {
+    setSets(sets.map(set => {
+      if (set.id === setId) {
+        return { ...set, noTimeTracking: !set.noTimeTracking }
+      }
+      return set
+    }))
   }
   
   return (
@@ -62,52 +136,35 @@ const SessionForm = () => {
       
       <form onSubmit={handleSubmit} className="form-container">
         <div className="form-grid">
-          {/* Session Type */}
           <div className="form-field">
-            <label className="form-label">Distance</label>
+            <label className="form-label">Session Type</label>
             <div style={{ 
               display: 'flex', 
               gap: '0.5rem',
               marginBottom: '1rem',
               flexWrap: 'wrap'
             }}>
-              {['100m', '200m', '400m', 'Fly 10m', 'Strength'].map(distance => (
+              {['Sprint', 'Technique', 'Strength', 'Recovery'].map(type => (
                 <button
-                  key={distance}
+                  key={type}
                   type="button"
-                  onClick={() => handleSetDistance(distance)}
+                  onClick={() => setFormData({ ...formData, type })}
                   style={{
                     padding: '0.5rem 0.75rem',
                     borderRadius: '0.5rem',
                     fontSize: '0.875rem',
                     border: 'none',
                     cursor: 'pointer',
-                    backgroundColor: formData.type === distance ? 'var(--primary)' : 'var(--gray-100)',
-                    color: formData.type === distance ? 'white' : 'var(--gray-700)'
+                    backgroundColor: formData.type === type ? 'var(--primary)' : 'var(--gray-100)',
+                    color: formData.type === type ? 'white' : 'var(--gray-700)'
                   }}
                 >
-                  {distance}
+                  {type}
                 </button>
               ))}
             </div>
           </div>
           
-          {/* Time */}
-          <div className="form-field">
-            <label htmlFor="time" className="form-label">Time</label>
-            <input
-              type="text"
-              id="time"
-              name="time"
-              placeholder={formData.type === 'Strength' ? "45m" : "10.87s"}
-              value={formData.time}
-              onChange={handleChange}
-              className="form-input"
-              required
-            />
-          </div>
-          
-          {/* Date */}
           <div className="form-field">
             <label htmlFor="date" className="form-label">Date</label>
             <input
@@ -120,7 +177,6 @@ const SessionForm = () => {
             />
           </div>
           
-          {/* Weather (only for running) */}
           {formData.type !== 'Strength' && (
             <div className="form-field">
               <label htmlFor="weather" className="form-label">Weather Conditions</label>
@@ -141,7 +197,6 @@ const SessionForm = () => {
             </div>
           )}
           
-          {/* Track Surface (only for running) */}
           {formData.type !== 'Strength' && (
             <div className="form-field">
               <label htmlFor="surface" className="form-label">Track Surface</label>
@@ -162,7 +217,126 @@ const SessionForm = () => {
           )}
         </div>
         
-        {/* Notes - full width on all screen sizes */}
+        <div className="sets-container">
+          <div className="sets-header">
+            <h2 className="heading-2">Training Sets</h2>
+            <button 
+              type="button" 
+              onClick={addSet}
+              className="add-set-button"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Add Set
+            </button>
+          </div>
+          
+          {sets.map((set, setIndex) => (
+            <div key={set.id} className="set-card">
+              <div className="set-header">
+                <h3>Set {setIndex + 1}</h3>
+                {sets.length > 1 && (
+                  <button 
+                    type="button" 
+                    onClick={() => removeSet(set.id)}
+                    className="remove-set-button"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Remove
+                  </button>
+                )}
+              </div>
+              
+              <div className="set-form-row">
+                <div className="form-field">
+                  <label className="form-label">Reps</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={set.reps}
+                    onChange={(e) => handleSetChange(set.id, 'reps', e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+                
+                <div className="form-field">
+                  <label className="form-label">Distance</label>
+                  <div className="distance-inputs">
+                    <select
+                      value={set.distance}
+                      onChange={(e) => handleSetChange(set.id, 'distance', e.target.value)}
+                      className="form-input"
+                      disabled={!!set.customDistance}
+                    >
+                      {commonDistances.map(dist => (
+                        <option key={dist} value={dist}>{dist}</option>
+                      ))}
+                    </select>
+                    
+                    <div className="or-divider">or</div>
+                    
+                    <input
+                      type="text"
+                      placeholder="Custom (e.g. 25m)"
+                      value={set.customDistance}
+                      onChange={(e) => handleSetChange(set.id, 'customDistance', e.target.value)}
+                      className="form-input"
+                    />
+                    
+                    {set.customDistance && (
+                      <button
+                        type="button"
+                        onClick={() => handleSetChange(set.id, 'customDistance', '')}
+                        className="text-button"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="time-tracking-section">
+                <div className="time-tracking-header">
+                  <label className="form-label">Time Tracking</label>
+                  <div className="checkbox-container">
+                    <input
+                      type="checkbox"
+                      id={`no-time-${set.id}`}
+                      checked={set.noTimeTracking}
+                      onChange={() => toggleTimeTracking(set.id)}
+                    />
+                    <label htmlFor={`no-time-${set.id}`}>No time tracking for this set</label>
+                  </div>
+                </div>
+                
+                {!set.noTimeTracking && (
+                  <div className="times-container">
+                    {Array.from({ length: set.reps }, (_, i) => (
+                      <div key={i} className="time-input-row">
+                        <label className="form-label">Rep {i + 1}</label>
+                        <input
+                          type="text"
+                          placeholder={formData.type === 'Strength' ? "1m 30s" : "10.87s"}
+                          value={set.times[i] || ''}
+                          onChange={(e) => handleTimeChange(set.id, i, e.target.value)}
+                          className="form-input"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        
         <div className="form-field" style={{ marginTop: '1.5rem' }}>
           <label htmlFor="notes" className="form-label">Notes</label>
           <textarea
@@ -177,7 +351,6 @@ const SessionForm = () => {
           ></textarea>
         </div>
         
-        {/* Submit Button */}
         <div style={{ marginTop: '1.5rem' }}>
           <button 
             type="submit" 
