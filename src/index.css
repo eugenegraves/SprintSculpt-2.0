@@ -1,0 +1,142 @@
+/* Basic styles for the app */
+body {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f9fafb;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+.heading-1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.heading-2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.card {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.btn-primary {
+  background-color: #FF6B35;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 150ms;
+}
+
+.btn-primary:hover {
+  background-color: rgba(255, 107, 53, 0.9);
+}
+
+.mobile-container {
+  max-width: 100%;
+  margin: 0 auto;
+  min-height: 100vh;
+  overflow: auto;
+}
+
+/* Desktop styles */
+@media (min-width: 768px) {
+  .mobile-container {
+    max-width: 1200px;
+    padding: 0 2rem;
+  }
+  
+  .page-container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .heading-1 {
+    font-size: 2rem;
+  }
+  
+  .heading-2 {
+    font-size: 1.5rem;
+  }
+  
+  .card {
+    padding: 1.5rem;
+    border-radius: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.page-container {
+  padding: 1rem;
+}
+
+/* Ensure the fixed bottom nav doesn't appear on desktop */
+@media (min-width: 768px) {
+  .mobile-nav {
+    position: static;
+    border-top: none;
+    background: transparent;
+  }
+  
+  .desktop-nav {
+    display: flex;
+    padding: 1rem 2rem;
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .desktop-nav-links {
+    display: flex;
+    gap: 2rem;
+    margin-left: auto;
+  }
+  
+  .desktop-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--gray-600);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 0;
+  }
+  
+  .desktop-nav-link.active {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+  }
+  
+  .desktop-nav-link:hover {
+    color: var(--primary);
+  }
+  
+  /* Hide mobile navigation on desktop */
+  .mobile-only {
+    display: none;
+  }
+  
+  /* Add side padding to page on larger screens */
+  .page-container {
+    padding: 2rem;
+  }
+  
+  /* Improve form layouts on desktop */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}

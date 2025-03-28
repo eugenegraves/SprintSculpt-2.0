@@ -1,0 +1,35 @@
+/* App-specific styles - most styling is done with Tailwind */
+
+/* Scrollbar styles for non-mobile devices */
+@media (min-width: 768px) {
+  .mobile-container {
+    max-width: 480px;
+    margin: 0 auto;
+    border-left: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .mobile-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .mobile-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  
+  .mobile-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+  }
+  
+  .mobile-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+}
+
+/* Add extra bottom spacing for content to account for fixed navbar */
+.pb-20 {
+  padding-bottom: 5rem;
+}
